@@ -20,6 +20,8 @@ This file contains search functions.
 
 from collections import deque
 import heapq
+from state import MazeState
+
 
 # Search should return the path and the number of states explored.
 # The path should be a list of MazeState objects that correspond
@@ -43,10 +45,36 @@ def astar(maze, ispart1=False):
     """
     # Your code here
     path = []
+    starting_state = maze.getStart()
+    visited_states = {starting_state: (None, 0)}
+    frontier = []
+    heapq.heappush(frontier, starting_state)
+    while(frontier):
+        state_curr = heapq.heappop(frontier)
+        if(maze.isObjective(state_curr.state[0], state_curr.state[1], state_curr.state[2], ispart1)):
+            path = backtrack(visited_states,state_curr)
+            return path
+        neibor_pos = maze.get_neighbors(state_curr.state[0], state_curr.state[1], state_curr.state[2], ispart1)
+        neibor = []
+        for i in neibor_pos:
+            neibor.append(MazeState(i, maze.getObjectives(),1 + state_curr.dist_from_start, state_curr.mst_cache, state_curr.use_heuristic))
+        for s in neibor:
+            if s not in visited_states:
+                heapq.heappush(frontier,s)
+                visited_states[s] = (state_curr, s.dist_from_start)
+            else:
+                if s.dist_from_start < visited_states[s][1]:
+                    visited_states[s] = (state_curr, s.dist_from_start)
+                    heapq.heappush(frontier, s)
     return None
 
 # This is the same as backtrack from MP2
 def backtrack(visited_states, current_state):
     path = []
+    state = current_state
+    while(visited_states[state][1] != 0):
+        path.insert(0,state)
+        state = visited_states[state][0]
+    path.insert(0,state)
     return path
         
